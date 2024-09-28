@@ -1,3 +1,6 @@
 openai
 groq
 llama-cpp-python
+fastapi
+uvicorn
+pydantic
