@@ -8,7 +8,7 @@ import random
 
 class Executor:
     def __init__(self, api_key: str):
-        self.client = groq.Client(api_key=api_key)
+        self.client = groq.Client(api_key=GROQ_API_KEY)
 
     def execute_action(
         self, action: Dict[str, str], context: Dict[str, Any]

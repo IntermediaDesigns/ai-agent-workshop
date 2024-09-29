@@ -6,7 +6,7 @@ from typing import List, Dict
 
 class Planner:
     def __init__(self, api_key: str):
-        self.client = groq.Client(api_key=api_key)
+        self.client = groq.Client(api_key=GROQ_API_KEY)
 
     def create_plan(self, task: str) -> List[Dict[str, str]]:
         prompt = f"""

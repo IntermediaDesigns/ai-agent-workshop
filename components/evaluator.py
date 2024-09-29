@@ -5,7 +5,7 @@ from typing import Dict, Any, List
 
 class Evaluator:
     def __init__(self, api_key: str):
-        self.client = groq.Client(api_key=api_key)
+        self.client = groq.Client(api_key=GROQ_API_KEY)
 
     def evaluate_action(self, action: Dict[str, str], result: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
         prompt = f"""

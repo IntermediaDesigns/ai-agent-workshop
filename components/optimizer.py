@@ -6,7 +6,7 @@ from typing import Dict, Any, List
 
 class Optimizer:
     def __init__(self, api_key: str):
-        self.client = groq.Client(api_key=api_key)
+        self.client = groq.Client(api_key=GROQ_API_KEY)
 
     def analyze_performance(self, task_history: List[Dict[str, Any]]) -> Dict[str, Any]:
         prompt = f"""

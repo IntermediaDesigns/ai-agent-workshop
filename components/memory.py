@@ -8,7 +8,7 @@ import os
 
 class Memory:
     def __init__(self, api_key: str, storage_file: str = "memory_storage.json"):
-        self.client = groq.Client(api_key=api_key)
+        self.client = groq.Client(api_key=GROQ_API_KEY)
         self.storage_file = storage_file
         self.short_term_memory = {}
         self.long_term_memory = self.load_long_term_memory()
