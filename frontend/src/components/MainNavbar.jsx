@@ -19,12 +19,12 @@ function MainNavbar({ darkMode, toggleDarkMode }) {
               >
                 {darkMode ? <Sun size={24} /> : <Moon size={24} />}
               </button>
-              <button
+              {/* <button
                 onClick={() => navigate("/dashboard")}
                 className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 rounded mr-4"
               >
                 Go to Dashboard
-              </button>
+              </button> */}
               <UserButton afterSignOutUrl="/" />
             </SignedIn>
             <SignedOut>

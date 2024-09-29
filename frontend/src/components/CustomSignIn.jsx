@@ -8,7 +8,7 @@ const CustomSignIn = () => {
       <Navbar />
 
       <div className="signIn bg-white dark:bg-gray-900">
-        <SignIn routing="path" path="/sign-in" />
+        <SignIn routing="path" path="/sign-in" forceRedirectUrl="/dashboard" />
       </div>
     </>
   );

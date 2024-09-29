@@ -18,6 +18,12 @@
   min-height: 92.3vh;
 }
 
+.cl-avatarBox {
+  width: 60px;
+  height: auto;
+
+}
+
 .signIn {
   display: flex;
   justify-content: center;
