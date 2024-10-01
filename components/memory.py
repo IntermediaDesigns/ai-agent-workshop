@@ -1,14 +1,21 @@
-# components/memory.py
-
-import groq
 from typing import Dict, Any, List
+from openai import OpenAI
+from groq import Groq
 import json
 import os
 
 
 class Memory:
-    def __init__(self, api_key: str, storage_file: str = "memory_storage.json"):
-        self.client = groq.Client(api_key=GROQ_API_KEY)
+    def __init__(
+        self,
+        groq_client: Groq,
+        openai_client: OpenAI,
+        openrouter_client: OpenAI,
+        storage_file: str = "memory_storage.json",
+    ):
+        self.groq_client = groq_client
+        self.openai_client = openai_client
+        self.openrouter_client = openrouter_client
         self.storage_file = storage_file
         self.short_term_memory = {}
         self.long_term_memory = self.load_long_term_memory()
@@ -36,7 +43,9 @@ class Memory:
     def get_from_long_term_memory(self, key: str) -> Any:
         return self.long_term_memory.get(key)
 
-    def summarize_and_store(self, data: Dict[str, Any], context: Dict[str, Any]):
+    def summarize_and_store(
+        self, data: Dict[str, Any], context: Dict[str, Any], api: str = "groq"
+    ):
         prompt = f"""
         Data: {data}
         Context: {context}
@@ -52,16 +61,41 @@ class Memory:
         and values containing the summarized insights.
         """
 
-        response = self.client.chat.completions.create(
-            model="llama3-1-small",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are an AI memory manager. Your job is to extract and summarize key information for long-term storage.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-        )
+        if api == "groq":
+            response = self.groq_client.chat.completions.create(
+                model="llama3-1-small",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI memory manager. Your job is to extract and summarize key information for long-term storage.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        elif api == "openai":
+            response = self.openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI memory manager. Your job is to extract and summarize key information for long-term storage.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        elif api == "openrouter":
+            response = self.openrouter_client.chat.completions.create(
+                model="meta-llama/llama-3.1-8b-instruct:free",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI memory manager. Your job is to extract and summarize key information for long-term storage.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        else:
+            raise ValueError(f"Invalid API: {api}")
 
         summary = eval(response.choices[0].message.content)
 
@@ -69,7 +103,7 @@ class Memory:
             self.add_to_long_term_memory(category, insights)
 
     def retrieve_relevant_info(
-        self, query: str, context: Dict[str, Any]
+        self, query: str, context: Dict[str, Any], api: str = "groq"
     ) -> Dict[str, Any]:
         prompt = f"""
         Query: {query}
@@ -84,16 +118,41 @@ class Memory:
         and 'synthesis' (a brief summary of how this information relates to the query).
         """
 
-        response = self.client.chat.completions.create(
-            model="llama3-1-small",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are an AI memory retrieval system. Your job is to find and synthesize relevant information from stored memories.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-        )
+        if api == "groq":
+            response = self.groq_client.chat.completions.create(
+                model="llama3-1-small",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI memory retrieval system. Your job is to find and synthesize relevant information from stored memories.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        elif api == "openai":
+            response = self.openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI memory retrieval system. Your job is to find and synthesize relevant information from stored memories.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        elif api == "openrouter":
+            response = self.openrouter_client.chat.completions.create(
+                model="meta-llama/llama-3.1-8b-instruct:free",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI memory retrieval system. Your job is to find and synthesize relevant information from stored memories.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        else:
+            raise ValueError(f"Invalid API: {api}")
 
         retrieval_result = eval(response.choices[0].message.content)
         return retrieval_result

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 import {
   LineChart,
@@ -22,6 +22,7 @@ export default function AIAgentDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
+  const API_URL = "http://localhost:8000"; // Update this to your backend URL
 
   useEffect(() => {
     fetchTaskHistory();
@@ -42,7 +43,7 @@ export default function AIAgentDashboard() {
   const fetchTaskHistory = async () => {
     setError(null);
     try {
-      const response = await fetch("/task_history");
+      const response = await fetch(`${API_URL}/task_history`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -51,7 +52,7 @@ export default function AIAgentDashboard() {
     } catch (e) {
       console.error("Error fetching task history:", e);
       setError("Failed to fetch task history. Please try again later.");
-      setTaskHistory([]); // Reset task history on error
+      setTaskHistory([]);
     }
   };
 
@@ -60,16 +61,21 @@ export default function AIAgentDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("/run_task", {
+      let token = "";
+      if (user && typeof user.getToken === "function") {
+        token = await user.getToken();
+      }
+
+      const response = await fetch(`${API_URL}/run_task`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${await user.getToken()}`, // Include user token for authentication
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
         body: JSON.stringify({
           task,
           context: JSON.parse(context),
-          userId: user.id, // Include user ID to associate task with user
+          userId: user?.id || "anonymous",
         }),
       });
       if (!response.ok) {
@@ -162,7 +168,9 @@ export default function AIAgentDashboard() {
         )}
 
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold mb-4 bg-none">Performance Over Time</h2>
+          <h2 className="text-2xl font-bold mb-4 bg-none">
+            Performance Over Time
+          </h2>
           {taskHistory.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={performanceData}>

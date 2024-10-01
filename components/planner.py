@@ -1,14 +1,22 @@
-# components/planner.py
-
-import groq
 from typing import List, Dict
+from openai import OpenAI
+from groq import Groq
 
 
 class Planner:
-    def __init__(self, api_key: str):
-        self.client = groq.Client(api_key=GROQ_API_KEY)
+    def __init__(
+        self,
+        groq_client: Groq,
+        openai_client: OpenAI,
+        openrouter_client: OpenAI,
+        groq_model: str,
+    ):
+        self.groq_client = groq_client
+        self.openai_client = openai_client
+        self.openrouter_client = openrouter_client
+        self.groq_model = groq_model
 
-    def create_plan(self, task: str) -> List[Dict[str, str]]:
+    def create_plan(self, task: str, api: str = "groq") -> List[Dict[str, str]]:
         prompt = f"""
         Task: {task}
         
@@ -23,23 +31,47 @@ class Planner:
         ]
         """
 
-        response = self.client.chat.completions.create(
-            model="llama3-1-small",  # Specify the Llama 3.1 model you're using
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are an AI planner. Your job is to break down tasks into clear, actionable steps.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-        )
+        if api == "groq":
+            response = self.groq_client.chat.completions.create(
+                model=self.groq_model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI planner. Your job is to break down tasks into clear, actionable steps.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        elif api == "openai":
+            response = self.openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI planner. Your job is to break down tasks into clear, actionable steps.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        elif api == "openrouter":
+            response = self.openrouter_client.chat.completions.create(
+                model="meta-llama/llama-3.1-8b-instruct:free",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI planner. Your job is to break down tasks into clear, actionable steps.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        else:
+            raise ValueError(f"Invalid API: {api}")
 
-        # Parse the response and convert it to the expected format
         plan = eval(response.choices[0].message.content)
         return plan
 
     def refine_plan(
-        self, plan: List[Dict[str, str]], feedback: str
+        self, plan: List[Dict[str, str]], feedback: str, api: str = "groq"
     ) -> List[Dict[str, str]]:
         plan_str = str(plan)
         prompt = f"""
@@ -50,16 +82,41 @@ class Planner:
         Please refine the plan based on the given feedback. Maintain the same format as the original plan.
         """
 
-        response = self.client.chat.completions.create(
-            model="llama3-1-small",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are an AI planner. Your job is to refine existing plans based on feedback.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-        )
+        if api == "groq":
+            response = self.groq_client.chat.completions.create(
+                model="llama3-1-small",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI planner. Your job is to refine existing plans based on feedback.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        elif api == "openai":
+            response = self.openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI planner. Your job is to refine existing plans based on feedback.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        elif api == "openrouter":
+            response = self.openrouter_client.chat.completions.create(
+                model="meta-llama/llama-3.1-8b-instruct:free",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI planner. Your job is to refine existing plans based on feedback.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        else:
+            raise ValueError(f"Invalid API: {api}")
 
         refined_plan = eval(response.choices[0].message.content)
         return refined_plan

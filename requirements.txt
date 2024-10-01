@@ -1,6 +1,9 @@
-openai
+openai==1.3.0
 groq
 llama-cpp-python
 fastapi
 uvicorn
 pydantic
+python-dotenv==1.0.0
+pyjwt
+python-multipart

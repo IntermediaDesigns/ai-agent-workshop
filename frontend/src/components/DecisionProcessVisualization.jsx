@@ -1,5 +1,13 @@
-import React, { useState } from 'react';
-import { ArrowRight, CheckCircle, XCircle, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState } from "react";
+import PropTypes from "prop-types";
+import {
+  ArrowRight,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 
 const ExpandableSection = ({ title, children, initiallyExpanded = false }) => {
   const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
@@ -18,14 +26,20 @@ const ExpandableSection = ({ title, children, initiallyExpanded = false }) => {
   );
 };
 
+ExpandableSection.propTypes = {
+  title: PropTypes.string.isRequired,
+  children: PropTypes.node.isRequired,
+  initiallyExpanded: PropTypes.bool,
+};
+
 const ProcessStep = ({ title, details, status }) => {
   const getStatusIcon = () => {
     switch (status) {
-      case 'completed':
+      case "completed":
         return <CheckCircle className="text-green-500" />;
-      case 'failed':
+      case "failed":
         return <XCircle className="text-red-500" />;
-      case 'warning':
+      case "warning":
         return <AlertTriangle className="text-yellow-500" />;
       default:
         return null;
@@ -43,6 +57,12 @@ const ProcessStep = ({ title, details, status }) => {
   );
 };
 
+ProcessStep.propTypes = {
+  title: PropTypes.string.isRequired,
+  details: PropTypes.string.isRequired,
+  status: PropTypes.oneOf(["completed", "failed", "warning"]),
+};
+
 const DecisionProcessVisualization = ({ result }) => {
   if (!result) return null;
 
@@ -50,8 +70,10 @@ const DecisionProcessVisualization = ({ result }) => {
 
   return (
     <div className="bg-gray-100 dark:bg-gray-900 p-6 rounded-lg shadow-lg mb-8">
-      <h2 className="text-2xl font-bold mb-6">Decision Process Visualization</h2>
-      
+      <h2 className="text-2xl font-bold mb-6">
+        Decision Process Visualization
+      </h2>
+
       <ExpandableSection title="Planning Stage" initiallyExpanded={true}>
         {plan.map((step, index) => (
           <div key={index} className="flex items-start mb-4">
@@ -78,7 +100,7 @@ const DecisionProcessVisualization = ({ result }) => {
             <ProcessStep
               title={`Step ${index + 1} Execution`}
               details={`Result: ${result.result}. Time taken: ${result.time_taken} minutes.`}
-              status={result.side_effects ? 'warning' : 'completed'}
+              status={result.side_effects ? "warning" : "completed"}
             />
           </div>
         ))}
@@ -88,19 +110,55 @@ const DecisionProcessVisualization = ({ result }) => {
         <ProcessStep
           title="Overall Evaluation"
           details={`Score: ${evaluation.score}. ${evaluation.summary}`}
-          status={evaluation.score > 80 ? 'completed' : evaluation.score > 50 ? 'warning' : 'failed'}
+          status={
+            evaluation.score > 80
+              ? "completed"
+              : evaluation.score > 50
+              ? "warning"
+              : "failed"
+          }
         />
-        <div className="mt-4">
-          <h4 className="font-semibold mb-2">Key Learnings:</h4>
-          <ul className="list-disc list-inside">
-            {evaluation.lessons.map((lesson, index) => (
-              <li key={index} className="text-sm text-gray-600 dark:text-gray-400">{lesson}</li>
-            ))}
-          </ul>
-        </div>
+        {evaluation.lessons && evaluation.lessons.length > 0 && (
+          <div className="mt-4">
+            <h4 className="font-semibold mb-2">Key Learnings:</h4>
+            <ul className="list-disc list-inside">
+              {evaluation.lessons.map((lesson, index) => (
+                <li
+                  key={index}
+                  className="text-sm text-gray-600 dark:text-gray-400"
+                >
+                  {lesson}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </ExpandableSection>
     </div>
   );
+};
+
+DecisionProcessVisualization.propTypes = {
+  result: PropTypes.shape({
+    plan: PropTypes.arrayOf(
+      PropTypes.shape({
+        action: PropTypes.string.isRequired,
+        description: PropTypes.string.isRequired,
+      })
+    ).isRequired,
+    results: PropTypes.arrayOf(
+      PropTypes.shape({
+        result: PropTypes.string.isRequired,
+        time_taken: PropTypes.number.isRequired,
+        side_effects: PropTypes.bool,
+      })
+    ).isRequired,
+    evaluation: PropTypes.shape({
+      score: PropTypes.number.isRequired,
+      summary: PropTypes.string.isRequired,
+      lessons: PropTypes.arrayOf(PropTypes.string),
+    }).isRequired,
+  }),
 };
 
 export default DecisionProcessVisualization;

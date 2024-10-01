@@ -1,14 +1,19 @@
-# components/optimizer.py
-
-import groq
 from typing import Dict, Any, List
+from openai import OpenAI
+from groq import Groq
 
 
 class Optimizer:
-    def __init__(self, api_key: str):
-        self.client = groq.Client(api_key=GROQ_API_KEY)
+    def __init__(
+        self, groq_client: Groq, openai_client: OpenAI, openrouter_client: OpenAI
+    ):
+        self.groq_client = groq_client
+        self.openai_client = openai_client
+        self.openrouter_client = openrouter_client
 
-    def analyze_performance(self, task_history: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def analyze_performance(
+        self, task_history: List[Dict[str, Any]], api: str = "groq"
+    ) -> Dict[str, Any]:
         prompt = f"""
         Task History: {task_history}
 
@@ -21,22 +26,47 @@ class Optimizer:
         Format the output as a Python dictionary with keys: 'success_patterns', 'issues', 'trends', and 'improvement_areas'.
         """
 
-        response = self.client.chat.completions.create(
-            model="llama3-1-small",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are an AI performance analyst. Your job is to identify patterns and suggest improvements based on historical task performance.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-        )
+        if api == "groq":
+            response = self.groq_client.chat.completions.create(
+                model="llama3-1-small",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI performance analyst. Your job is to identify patterns and suggest improvements based on historical task performance.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        elif api == "openai":
+            response = self.openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI performance analyst. Your job is to identify patterns and suggest improvements based on historical task performance.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        elif api == "openrouter":
+            response = self.openrouter_client.chat.completions.create(
+                model="meta-llama/llama-3.1-8b-instruct:free",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI performance analyst. Your job is to identify patterns and suggest improvements based on historical task performance.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        else:
+            raise ValueError(f"Invalid API: {api}")
 
         analysis = eval(response.choices[0].message.content)
         return analysis
 
     def generate_optimization_suggestions(
-        self, analysis: Dict[str, Any], current_task: str
+        self, analysis: Dict[str, Any], current_task: str, api: str = "groq"
     ) -> Dict[str, Any]:
         prompt = f"""
         Performance Analysis: {analysis}
@@ -55,22 +85,51 @@ class Optimizer:
         where each tuple contains (suggestion, explanation).
         """
 
-        response = self.client.chat.completions.create(
-            model="llama3-1-small",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are an AI optimization expert. Your job is to suggest improvements to an AI agent's strategies based on past performance and the current task.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-        )
+        if api == "groq":
+            response = self.groq_client.chat.completions.create(
+                model="llama3-1-small",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI optimization expert. Your job is to suggest improvements to an AI agent's strategies based on past performance and the current task.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        elif api == "openai":
+            response = self.openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI optimization expert. Your job is to suggest improvements to an AI agent's strategies based on past performance and the current task.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        elif api == "openrouter":
+            response = self.openrouter_client.chat.completions.create(
+                model="meta-llama/llama-3.1-8b-instruct:free",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI optimization expert. Your job is to suggest improvements to an AI agent's strategies based on past performance and the current task.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        else:
+            raise ValueError(f"Invalid API: {api}")
 
         suggestions = eval(response.choices[0].message.content)
         return suggestions
 
     def apply_optimizations(
-        self, component: str, suggestions: List[tuple], context: Dict[str, Any]
+        self,
+        component: str,
+        suggestions: List[tuple],
+        context: Dict[str, Any],
+        api: str = "groq",
     ) -> Dict[str, Any]:
         prompt = f"""
         Component: {component}
@@ -86,16 +145,74 @@ class Optimizer:
         another dictionary containing 'implementation', 'impact', and 'risks'.
         """
 
-        response = self.client.chat.completions.create(
-            model="llama3-1-small",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are an AI system architect. Your job is to determine how to implement optimization suggestions in specific components of an AI agent.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-        )
+        if api == "groq":
+            response = self.groq_client.chat.completions.create(
+                model="llama3-1-small",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI system architect. Your job is to determine how to implement optimization suggestions in specific components of an AI agent.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        elif api == "openai":
+            response = self.openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI system architect. Your job is to determine how to implement optimization suggestions in specific components of an AI agent.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        elif api == "openrouter":
+            response = self.openrouter_client.chat.completions.create(
+                model="meta-llama/llama-3.1-8b-instruct:free",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an AI system architect. Your job is to determine how to implement optimization suggestions in specific components of an AI agent.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        else:
+            raise ValueError(f"Invalid API: {api}")
 
         optimizations = eval(response.choices[0].message.content)
+        return optimizations
+
+    def optimize_component(
+        self,
+        component: str,
+        task_history: List[Dict[str, Any]],
+        current_task: str,
+        context: Dict[str, Any],
+        api: str = "groq",
+    ) -> Dict[str, Any]:
+        analysis = self.analyze_performance(task_history, api)
+        suggestions = self.generate_optimization_suggestions(
+            analysis, current_task, api
+        )
+        component_suggestions = suggestions.get(f"{component}_suggestions", [])
+        optimizations = self.apply_optimizations(
+            component, component_suggestions, context, api
+        )
+        return optimizations
+
+    def optimize_all_components(
+        self,
+        task_history: List[Dict[str, Any]],
+        current_task: str,
+        context: Dict[str, Any],
+        api: str = "groq",
+    ) -> Dict[str, Dict[str, Any]]:
+        components = ["planning", "reasoning", "execution", "evaluation"]
+        optimizations = {}
+        for component in components:
+            optimizations[component] = self.optimize_component(
+                component, task_history, current_task, context, api
+            )
         return optimizations
