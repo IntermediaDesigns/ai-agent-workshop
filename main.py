@@ -43,6 +43,8 @@ async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(secur
             status_code=401, detail="Invalid authentication credentials"
         )
 
+# This is important for Vercel serverless function
+app = app
 
 app = FastAPI()
 
