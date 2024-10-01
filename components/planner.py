@@ -86,7 +86,7 @@ class Planner:
 
         if api == "groq":
             response = self.groq_client.chat.completions.create(
-                model="llama3-1-small",
+                model=GROQ_MODELS[0],
                 messages=[
                     {
                         "role": "system",

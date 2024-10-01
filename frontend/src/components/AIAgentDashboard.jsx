@@ -22,7 +22,7 @@ export default function AIAgentDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
-  const API_URL = import.meta.env.REACT_APP_API_URL || "http://localhost:8000"; // Update this to your backend URL
+  const API_URL = "http://localhost:8000"; // Update this to your backend URL
 
   useEffect(() => {
     fetchTaskHistory();

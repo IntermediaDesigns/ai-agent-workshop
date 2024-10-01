@@ -14,5 +14,8 @@ GROQ_MODELS = [
     "llama3-70b-8192",
     "llama3-8b-8192",
     "gemma2-9b-it",
+    "gemma-7b-it",
+    "mixtral-8x7b-32768",
+    "llama-guard-3-8b",
 ]
 OPENROUTER_MODEL = "meta-llama/llama-3.1-8b-instruct:free"
