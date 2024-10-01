@@ -1,15 +1,16 @@
 from typing import Dict, Any, List
 from openai import OpenAI
 from groq import Groq
+from config.config import GROQ_MODELS, OPENAI_MODEL, OPENROUTER_MODEL
+
 
 
 class Optimizer:
-    def __init__(
-        self, groq_client: Groq, openai_client: OpenAI, openrouter_client: OpenAI
-    ):
+    def __init__(self, groq_client: Groq, openai_client: OpenAI, openrouter_client: OpenAI, default_groq_model: str):
         self.groq_client = groq_client
         self.openai_client = openai_client
         self.openrouter_client = openrouter_client
+        self.default_groq_model = default_groq_model
 
     def analyze_performance(
         self, task_history: List[Dict[str, Any]], api: str = "groq"

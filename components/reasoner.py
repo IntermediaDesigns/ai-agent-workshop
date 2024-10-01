@@ -1,15 +1,16 @@
 from typing import List, Dict, Any
 from openai import OpenAI
 from groq import Groq
+from config.config import GROQ_MODELS, OPENAI_MODEL, OPENROUTER_MODEL
+
 
 
 class Reasoner:
-    def __init__(
-        self, groq_client: Groq, openai_client: OpenAI, openrouter_client: OpenAI
-    ):
+    def __init__(self, groq_client: Groq, openai_client: OpenAI, openrouter_client: OpenAI, default_groq_model: str):
         self.groq_client = groq_client
         self.openai_client = openai_client
         self.openrouter_client = openrouter_client
+        self.default_groq_model = default_groq_model
 
     def analyze_step(
         self, step: Dict[str, str], context: Dict[str, Any], api: str = "groq"

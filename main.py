@@ -22,6 +22,16 @@ from components.optimizer import Optimizer
 from openai import OpenAI
 from groq import Groq
 
+# Import configuration
+from config.config import (
+    OPENAI_API_KEY,
+    GROQ_API_KEY,
+    OPENROUTER_API_KEY,
+    OPENAI_MODEL,
+    GROQ_MODELS,
+    OPENROUTER_MODEL,
+)
+
 security = HTTPBearer()
 
 
@@ -43,15 +53,13 @@ async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(secur
             status_code=401, detail="Invalid authentication credentials"
         )
 
-# This is important for Vercel serverless function
-app = app
 
 app = FastAPI()
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Add your frontend URL
+    allow_origins=["https://ai-agent-workshop.vercel.app/"],  # Add your frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -72,13 +80,21 @@ openrouter_client = OpenAI(
     base_url="https://openrouter.ai/api/v1", api_key=openrouter_api_key
 )
 
+# Use the first Groq model in the list as the default
+DEFAULT_GROQ_MODEL = GROQ_MODELS[0]
+
+
+
 # Initialize the components with all API clients
-planner = Planner(groq_client, openai_client, openrouter_client)
-reasoner = Reasoner(groq_client, openai_client, openrouter_client)
-executor = Executor(groq_client, openai_client, openrouter_client)
-evaluator = Evaluator(groq_client, openai_client, openrouter_client)
-memory = Memory(groq_client, openai_client, openrouter_client)
-optimizer = Optimizer(groq_client, openai_client, openrouter_client)
+planner = Planner(groq_client, openai_client, openrouter_client, DEFAULT_GROQ_MODEL)
+reasoner = Reasoner(groq_client, openai_client, openrouter_client, DEFAULT_GROQ_MODEL)
+executor = Executor(groq_client, openai_client, openrouter_client, DEFAULT_GROQ_MODEL)
+evaluator = Evaluator(groq_client, openai_client, openrouter_client, DEFAULT_GROQ_MODEL)
+memory = Memory(groq_client, openai_client, openrouter_client, DEFAULT_GROQ_MODEL)
+optimizer = Optimizer(groq_client, openai_client, openrouter_client, DEFAULT_GROQ_MODEL)
+
+# This is important for Vercel serverless function
+app = app
 
 
 class TaskInput(BaseModel):
@@ -102,7 +118,22 @@ async def run_task(task_input: TaskInput, user: dict = Depends(verify_token)):
 
     task = task_input.task
     context = task_input.context
-    api = context.get("api", "groq")  # Default to Groq if not specified
+    api = context.get("api", "groq")
+
+    # Select the appropriate model based on the API
+    if api == "groq":
+        model = context.get("model", DEFAULT_GROQ_MODEL)
+        if model not in GROQ_MODELS:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid Groq model. Available models are: {', '.join(GROQ_MODELS)}",
+            )
+    elif api == "openai":
+        model = OPENAI_MODEL
+    elif api == "openrouter":
+        model = OPENROUTER_MODEL
+    else:
+        raise HTTPException(status_code=400, detail="Invalid API specified")
 
     try:
         # Optimize based on past performance
@@ -116,14 +147,10 @@ async def run_task(task_input: TaskInput, user: dict = Depends(verify_token)):
         relevant_info = memory.retrieve_relevant_info(task, context, api)
         context.update(relevant_info)
 
-        # Create a plan
-        initial_plan = planner.create_plan(task)
-
-        # Execute the plan
-        results = executor.execute_plan(initial_plan, context)
-
-        # Evaluate the plan execution
-        evaluation = evaluator.evaluate_plan(initial_plan, results, context)
+        # Use the selected model in your components
+        initial_plan = planner.create_plan(task, api=api, model=model)
+        results = executor.execute_plan(initial_plan, context, api=api, model=model)
+        evaluation = evaluator.evaluate_plan(initial_plan, results, context, api=api, model=model)
 
         # Store learnings in memory
         memory.summarize_and_store(
@@ -147,7 +174,9 @@ async def run_task(task_input: TaskInput, user: dict = Depends(verify_token)):
             task=task, plan=initial_plan, results=results, evaluation=evaluation
         )
 
-        return TaskOutput(task=task, plan=initial_plan, results=results, evaluation=evaluation)
+        return TaskOutput(
+            task=task, plan=initial_plan, results=results, evaluation=evaluation
+        )
     except Exception as e:
         print(f"Error in run_task: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
