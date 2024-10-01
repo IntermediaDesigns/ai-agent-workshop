@@ -59,7 +59,7 @@ app = FastAPI()
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://ai-agent-workshop.vercel.app/"],  # Add your frontend URL
+    allow_origins=["https://ai-agent-workshop.vercel.app/", "http://localhost:5173"],  # Add your frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

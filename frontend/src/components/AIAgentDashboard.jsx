@@ -22,7 +22,7 @@ export default function AIAgentDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000"; // Update this to your backend URL
+  const API_URL = import.meta.env.REACT_APP_API_URL || "http://localhost:8000"; // Update this to your backend URL
 
   useEffect(() => {
     fetchTaskHistory();
@@ -42,12 +42,15 @@ export default function AIAgentDashboard() {
 
   const fetchTaskHistory = async () => {
     setError(null);
+    console.log("Fetching task history from:", `${API_URL}/task_history`);
     try {
       const response = await fetch(`${API_URL}/task_history`);
+      console.log("Response status:", response.status);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
+      console.log("Fetched data:", data);
       setTaskHistory(data.task_history);
     } catch (e) {
       console.error("Error fetching task history:", e);
